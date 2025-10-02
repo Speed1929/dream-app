@@ -36,6 +36,7 @@ SPOTIFY_REDIRECT_URI = 'https://dream-app-lpo2.onrender.com/callback'
 logger.info("✅ Using lightweight TextBlob for sentiment analysis")
 
 # --- EMOTION TO MOODS MAPPING ---
+# --- ENHANCED EMOTION TO MOODS MAPPING ---
 emotion_to_moods = {
     "sadness": [
         "heartbreak", "heartbreak pain", "bittersweet unrequited", "wanderer loss", "heartbreak loss", 
@@ -43,7 +44,8 @@ emotion_to_moods = {
         "longing reunion", "hopeful longing", "rainy days", "winter bear", "lonely whale", 
         "separation pain", "trauma reflection", "melancholy loss", "introspection strange", 
         "rainy melancholy", "illusion love", "ending relationship", "guilt stigma", "hidden struggles", 
-        "self-doubt", "overwork reflection", "sad instrumental"
+        "self-doubt", "overwork reflection", "sad instrumental", "emotional pain", "tearful moments",
+        "lost love", "empty feeling", "quiet despair", "aching heart", "fading memories"
     ],
     "joy": [
         "sweet love", "joyful romance", "joyful love", "sweet adoration", "happiness", "fun love", 
@@ -53,8 +55,8 @@ emotion_to_moods = {
         "playful passion", "energetic flirtation", "energetic arrival", "energetic party", 
         "smooth fun", "chance dance", "boom fun", "marching band", "party call", "fun chicken", 
         "fun remix", "fun party", "fun crush", "embarrassment fun", "fun tuna", "epic motivation", 
-        "fun chicken", "count fun", "thug take", "seven seas", "permission joy", "smooth fun", 
-        "chance dance", "boom fun", "marching band", "party call"
+        "count fun", "thug take", "seven seas", "permission joy", "blissful moments", "carefree love",
+        "sunshine happiness", "celebratory vibes", "uplifting beats", "dancing joy"
     ],
     "love": [
         "dark romance", "sweet love", "college love", "romantic", "destiny love", "romantic adoration", 
@@ -94,18 +96,28 @@ emotion_to_moods = {
         "warning sound", "wake up", "vibe connection", "girls empowerment", "youth forever", 
         "future hope", "lonely whale", "wild flower", "with you", "that girl", 
         "first time", "little love", "friends we", "heart redefined", "allah boy", 
-        "allah girl", "jolt strong", "eternal bulletproof", "we on"
+        "allah girl", "jolt strong", "eternal bulletproof", "we on",
+        # Enhanced dark romance themes
+        "possessive love", "jealous devotion", "intense obsession", "forbidden desire", 
+        "dangerous attraction", "toxic passion", "consuming love", "unhealthy attachment",
+        "dark devotion", "fatal attraction", "obsessive possession", "intense yearning",
+        "dangerous romance", "forbidden romance", "taboo love", "secret obsession"
     ],
     "anger": [
         "jolt strong", "divine jealousy", "warning sound", "resistance", "social critique", 
-        "freedom rebellion", "empowering diss", "rap challenge", "rap triptych"
+        "freedom rebellion", "empowering diss", "rap challenge", "rap triptych",
+        "intense fury", "betrayal pain", "broken trust", "revenge motivation", "righteous anger",
+        "passionate rage", "fiery determination", "protective anger", "defensive strength"
     ],
     "fear": [
-        "introspection fear", "dark romance", "dark passion", "dark introspection"
+        "introspection fear", "dark romance", "dark passion", "dark introspection",
+        "anxious love", "uncertain future", "heart apprehension", "relationship anxiety",
+        "fearful devotion", "protective fear", "worried love", "apprehensive romance"
     ],
     "surprise": [
         "playful confusion", "3d dimension", "never let", "seven days", "marching band", 
-        "unknown mood", "unknown", "reel audio"
+        "unknown mood", "unknown", "reel audio", "sudden love", "unexpected romance",
+        "surprise attraction", "whirlwind romance", "instant connection", "fateful meeting"
     ],
     "other": [
         "motivational", "victory motivation", "hopeful wish", "motivational aim", "alive motivation", 
@@ -117,122 +129,179 @@ emotion_to_moods = {
         "love serendipity", "too much", "my time", "innocent mistakes", 
         "drama queen", "seven seas", "permission joy", "smooth fun", 
         "chance dance", "boom fun", "marching band", "party call", "fun chicken", 
-        "count fun", "thug take", "seven seas", "permission joy", "smooth fun", 
-        "chance dance", "boom fun", "marching band", "party call"
+        "count fun", "thug take", "seven seas", "smooth fun", 
+        "chance dance", "boom fun", "marching band", "party call",
+        "complex emotions", "mixed feelings", "emotional turmoil", "conflicted heart"
     ]
 }
 
-# --- EMOTIONAL SITUATIONS ---
+# --- ENHANCED EMOTIONAL SITUATIONS ---
 emotional_situations = {
-    "gothic_mystery": {
-        "feelings": ["dread", "mysterious", "foreboding", "curious", "haunted"],
-        "keywords": ["old stone", "corridor", "secret hidden", "ancient", "forgotten", "whispering"],
-        "moods": ["dark romance", "romantic mystery", "introspection fear", "dark passion"],
-        "description": "Gothic mystery with hidden secrets and atmosphere",
+    "dark_romance_obsessive": {
+        "feelings": ["obsessed", "possessive", "jealous", "consumed", "intense", "protective", "controlling"],
+        "keywords": ["obsessed", "possessive", "jealous", "mine", "only mine", "can't live without", "won't let you go", 
+                    "belongs to me", "protective", "controlling", "overprotective", "smothering", "consuming love"],
+        "moods": ["dark romance", "obsessive love", "possessive love", "jealous devotion", "intense obsession"],
+        "description": "Intense, possessive love with obsessive tendencies",
+        "sentiment_bias": -0.2,
+        "emotion_map": {"love": 0.8, "fear": 0.6, "anger": 0.4}
+    },
+    "mafia_dark_romance": {
+        "feelings": ["dangerous", "powerful", "protective", "feared", "respected", "intense", "forbidden"],
+        "keywords": ["mafia", "boss", "kingpin", "underworld", "crime lord", "dangerous man", "powerful",
+                    "feared", "respected", "protection", "territory", "loyalty", "betrayal", "revenge"],
+        "moods": ["dark romance", "dangerous attraction", "forbidden desire", "protective love", "intense passion"],
+        "description": "Dangerous romance with mafia or underworld themes",
         "sentiment_bias": -0.3,
-        "emotion_map": {"fear": 0.8, "anger": 0.3}
+        "emotion_map": {"love": 0.7, "fear": 0.7, "anger": 0.5}
+    },
+    "forbidden_romance": {
+        "feelings": ["forbidden", "secret", "taboo", "exciting", "dangerous", "thrilling", "illicit"],
+        "keywords": ["forbidden", "taboo", "secret", "hidden", "wrong but feels right", "illicit",
+                    "against the rules", "secret meetings", "hidden love", "stolen moments"],
+        "moods": ["forbidden romance", "secret love", "taboo love", "dangerous attraction", "intense passion"],
+        "description": "Secret, forbidden love that breaks social norms",
+        "sentiment_bias": 0.1,
+        "emotion_map": {"love": 0.8, "fear": 0.5, "surprise": 0.4}
+    },
+    "gothic_mystery": {
+        "feelings": ["dread", "mysterious", "foreboding", "curious", "haunted", "atmospheric", "eerie"],
+        "keywords": ["old stone", "corridor", "secret hidden", "ancient", "forgotten", "whispering", 
+                    "haunted", "ghostly", "ancient castle", "family secrets", "hidden past"],
+        "moods": ["dark romance", "romantic mystery", "introspection fear", "dark passion", "atmospheric love"],
+        "description": "Gothic mystery with hidden secrets and haunting atmosphere",
+        "sentiment_bias": -0.3,
+        "emotion_map": {"fear": 0.8, "love": 0.6, "surprise": 0.4}
     },
     "dark_longing": {
-        "feelings": ["longing", "obsessive", "consumed", "intense", "yearning"],
-        "keywords": ["dark longing", "strange longing", "consuming desire", "forbidden want", "kidnapped", "mafia", "boss", "forced marriage"],
-        "moods": ["dark romance", "obsessive love", "dark passion", "boundless passion"],
+        "feelings": ["longing", "obsessive", "consumed", "intense", "yearning", "aching", "unfulfilled"],
+        "keywords": ["dark longing", "strange longing", "consuming desire", "forbidden want", "kidnapped", 
+                    "forced marriage", "arranged marriage", "unwanted attraction", "complicated desire"],
+        "moods": ["dark romance", "obsessive love", "dark passion", "boundless passion", "intense yearning"],
         "description": "Intense dark desires and obsessive longing",
         "sentiment_bias": -0.1,
         "emotion_map": {"love": 0.6, "fear": 0.5, "anger": 0.4}
     },
     "danger_mystery": {
-        "feelings": ["danger", "fear", "thrill", "suspense", "apprehension"],
-        "keywords": ["overwhelming danger", "sense of danger", "threat", "peril", "fearful"],
-        "moods": ["dark romance", "introspection fear", "dark passion"],
+        "feelings": ["danger", "fear", "thrill", "suspense", "apprehension", "edge", "uncertainty"],
+        "keywords": ["overwhelming danger", "sense of danger", "threat", "peril", "fearful", "life at stake",
+                    "dangerous situation", "risky", "gambling with life"],
+        "moods": ["dark romance", "introspection fear", "dark passion", "dangerous attraction"],
         "description": "Dangerous situations with mysterious elements",
         "sentiment_bias": -0.4,
-        "emotion_map": {"fear": 0.9, "anger": 0.5}
+        "emotion_map": {"fear": 0.9, "anger": 0.5, "surprise": 0.3}
+    },
+    "enemies_to_lovers": {
+        "feelings": ["tense", "competitive", "passionate", "fiery", "conflicted", "transformative", "heated"],
+        "keywords": ["enemies", "rivals", "hate", "dislike", "competitive", "fiery", "tension",
+                    "from enemies to lovers", "love-hate", "complicated relationship"],
+        "moods": ["dark romance", "passionate dance", "fiery love", "intense passion", "transformative love"],
+        "description": "Transition from enemies to passionate lovers",
+        "sentiment_bias": 0.2,
+        "emotion_map": {"love": 0.7, "anger": 0.6, "surprise": 0.5}
     },
     "atmospheric_romance": {
-        "feelings": ["romantic", "mysterious", "passionate", "intense", "emotional"],
-        "keywords": ["thick with emotion", "passionate", "intense feelings", "emotional atmosphere"],
-        "moods": ["romantic", "sweet love", "boundless passion", "dark romance"],
-        "description": "Atmospheric romantic situations",
+        "feelings": ["romantic", "mysterious", "passionate", "intense", "emotional", "deep", "soulful"],
+        "keywords": ["thick with emotion", "passionate", "intense feelings", "emotional atmosphere",
+                    "soulful", "deep connection", "emotional intensity"],
+        "moods": ["romantic", "sweet love", "boundless passion", "dark romance", "emotional love"],
+        "description": "Atmospheric romantic situations with deep emotional connection",
         "sentiment_bias": 0.2,
-        "emotion_map": {"love": 0.7, "joy": 0.4}
-    },
-    "long_travel_boredom": {
-        "feelings": ["bored", "restless", "tired", "monotonous"],
-        "keywords": ["car for hours", "long drive", "nothing to do", "boring"],
-        "moods": ["soothing romance", "calm dreamy", "calm introspection"],
-        "description": "Long, boring travel needing pleasant distraction",
-        "sentiment_bias": -0.2,
-        "emotion_map": {"sadness": 0.3}
-    },
-    "high_stakes_preparation": {
-        "feelings": ["determined", "focused", "nervous", "ambitious"],
-        "keywords": ["presentation", "future", "career", "important"],
-        "moods": ["motivational", "victory motivation", "determination"],
-        "description": "Preparing for important events",
-        "sentiment_bias": 0.1,
-        "emotion_map": {"joy": 0.5, "surprise": 0.2}
+        "emotion_map": {"love": 0.7, "joy": 0.4, "sadness": 0.3}
     },
     "heartbreak_sad": {
-        "feelings": ["sad", "heartbroken", "devastated", "lonely", "grieving"],
-        "keywords": ["break up", "lost you", "heart broken", "tears", "alone"],
-        "moods": ["heartbreak", "introspection loss", "reflective longing"],
+        "feelings": ["sad", "heartbroken", "devastated", "lonely", "grieving", "lost", "empty"],
+        "keywords": ["break up", "lost you", "heart broken", "tears", "alone", "goodbye", "ended",
+                    "moving on", "letting go", "painful memories"],
+        "moods": ["heartbreak", "introspection loss", "reflective longing", "emotional pain", "lost love"],
         "description": "Heartbreak, loss, and deep sadness",
         "sentiment_bias": -0.6,
-        "emotion_map": {"sadness": 0.9, "anger": 0.4}
+        "emotion_map": {"sadness": 0.9, "anger": 0.4, "fear": 0.3}
     },
     "joyful_love": {
-        "feelings": ["happy", "joyful", "excited", "in love", "blissful", "romantic"],
-        "keywords": ["happy", "joy", "love", "celebrating", "together"],
-        "moods": ["sweet love", "happiness", "joyful romance", "romantic adoration"],
+        "feelings": ["happy", "joyful", "excited", "in love", "blissful", "romantic", "ecstatic"],
+        "keywords": ["happy", "joy", "love", "celebrating", "together", "perfect", "bliss",
+                    "wonderful", "amazing", "beautiful relationship"],
+        "moods": ["sweet love", "happiness", "joyful romance", "romantic adoration", "blissful moments"],
         "description": "Joyful and celebratory romantic moments",
         "sentiment_bias": 0.5,
-        "emotion_map": {"joy": 0.9, "love": 0.8}
+        "emotion_map": {"joy": 0.9, "love": 0.8, "surprise": 0.3}
     },
     "motivational_drive": {
-        "feelings": ["motivated", "determined", "strong", "empowered", "focused"],
-        "keywords": ["motivation", "success", "goal", "achieve", "push forward"],
-        "moods": ["motivational", "victory motivation", "determination", "empowerment rap"],
+        "feelings": ["motivated", "determined", "strong", "empowered", "focused", "ambitious", "driven"],
+        "keywords": ["motivation", "success", "goal", "achieve", "push forward", "determination",
+                    "ambition", "drive", "focus", "achievement"],
+        "moods": ["motivational", "victory motivation", "determination", "empowerment rap", "epic motivation"],
         "description": "Building motivation and drive for success",
         "sentiment_bias": 0.3,
-        "emotion_map": {"joy": 0.7, "surprise": 0.3}
+        "emotion_map": {"joy": 0.7, "surprise": 0.3, "anger": 0.2}
     },
     "nostalgic_reflection": {
-        "feelings": ["nostalgic", "reflective", "melancholic", "wistful"],
-        "keywords": ["memories", "past", "old times", "remember", "yesterday"],
-        "moods": ["memories nostalgia", "reflective longing", "introspection strange"],
+        "feelings": ["nostalgic", "reflective", "melancholic", "wistful", "remembering", "bittersweet"],
+        "keywords": ["memories", "past", "old times", "remember", "yesterday", "childhood",
+                    "looking back", "bittersweet", "fond memories"],
+        "moods": ["memories nostalgia", "reflective longing", "introspection strange", "bittersweet unrequited"],
         "description": "Nostalgic moments and reflective thoughts",
         "sentiment_bias": -0.1,
-        "emotion_map": {"sadness": 0.6, "love": 0.3}
+        "emotion_map": {"sadness": 0.6, "love": 0.3, "joy": 0.3}
     },
     "college_entry": {
-        "feelings": ["excited", "nervous", "romantic", "new", "freshman"],
-        "keywords": ["college", "entry", "first day", "campus", "university"],
-        "moods": ["college love", "sweet love", "romantic", "hope new start"],
+        "feelings": ["excited", "nervous", "romantic", "new", "freshman", "hopeful", "anxious"],
+        "keywords": ["college", "entry", "first day", "campus", "university", "freshman",
+                    "new beginning", "student life", "campus romance"],
+        "moods": ["college love", "sweet love", "romantic", "hope new start", "youthful romance"],
         "description": "Exciting entry into college life with romantic vibes",
         "sentiment_bias": 0.3,
         "emotion_map": {"joy": 0.7, "surprise": 0.6, "love": 0.4}
     },
     "cozy_gentle_romance": {
-        "feelings": ["gentle", "warm", "content", "relieved", "romantic"],
-        "keywords": ["fireplace", "warmth", "home", "quiet comfort", "gentle romance", "journey hardship", "worth it"],
-        "moods": ["sweet love", "romantic", "soothing romance", "calm dreamy"],
+        "feelings": ["gentle", "warm", "content", "relieved", "romantic", "safe", "comfortable"],
+        "keywords": ["fireplace", "warmth", "home", "quiet comfort", "gentle romance", "journey hardship", 
+                    "worth it", "safe haven", "comfortable", "peaceful"],
+        "moods": ["sweet love", "romantic", "soothing romance", "calm dreamy", "gentle romance"],
         "description": "Cozy, gentle romantic moments at home after hardship",
         "sentiment_bias": 0.4,
-        "emotion_map": {"love": 0.7, "joy": 0.5}
+        "emotion_map": {"love": 0.7, "joy": 0.5, "sadness": 0.2}
+    },
+    "second_chance_romance": {
+        "feelings": ["hopeful", "renewed", "forgiving", "cautious", "redeeming", "healing", "second try"],
+        "keywords": ["second chance", "forgiveness", "redemption", "starting over", "reunited",
+                    "old flames", "past lovers", "another try", "making it work"],
+        "moods": ["hopeful longing", "romantic reunion", "sweet love", "emotional healing"],
+        "description": "Second chance at love after past mistakes or separation",
+        "sentiment_bias": 0.2,
+        "emotion_map": {"love": 0.7, "joy": 0.5, "fear": 0.3}
     }
 }
 
-# --- EMOTIONAL WORD BANK ---
+# --- ENHANCED EMOTIONAL WORD BANK ---
 emotional_words = {
-    "dark": ["dread", "danger", "dark", "forbidden", "secret", "hidden", "mysterious", "ancient", "stone", "corridor", "overwhelming", "strange", "haunted", "ghostly", "shadow", "midnight", "threatening", "kidnapped", "mafia", "boss"],
-    "romantic": ["longing", "desire", "passion", "yearning", "love", "heart", "soul", "intimate", "connection", "devotion", "romance", "kiss", "embrace", "marry"],
-    "mystery": ["secret", "hidden", "unknown", "puzzle", "mystery", "enigma", "riddle", "clue", "discover", "reveal"],
-    "fear": ["dread", "fear", "terror", "panic", "anxiety", "apprehension", "unease", "foreboding", "scared"],
-    "atmospheric": ["air", "thick", "heavy", "atmosphere", "mood", "vibe", "feeling", "sense", "aura", "energy"],
-    "happy": ["happy", "joy", "excited", "celebrate", "fun", "bliss", "laugh", "smile", "ecstatic"],
-    "sad": ["sad", "depressed", "cry", "tear", "loss", "grief", "melancholy", "despair", "broken"],
-    "motivational": ["motivate", "success", "goal", "achieve", "strong", "empower", "victory", "rise", "conquer"],
-    "cozy": ["warmth", "fireplace", "home", "quiet", "comfort", "gentle", "cozy", "relieved", "content"]
+    "dark_romance": ["obsessed", "possessive", "jealous", "consuming", "dangerous", "forbidden", "taboo",
+                    "intense", "protective", "controlling", "overprotective", "smothering", "unhealthy",
+                    "toxic", "fatal", "dangerous", "risky", "illicit", "secret", "hidden",
+                    "mafia", "boss", "kingpin", "underworld", "crime", "power", "control",
+                    "kidnapped", "forced", "arranged", "unwanted", "complicated", "dark", "twisted"],
+    "romantic": ["longing", "desire", "passion", "yearning", "love", "heart", "soul", "intimate", 
+                "connection", "devotion", "romance", "kiss", "embrace", "marry", "adore", "cherish",
+                "affection", "tenderness", "sweet", "caring", "loving", "devoted", "faithful"],
+    "mystery": ["secret", "hidden", "unknown", "puzzle", "mystery", "enigma", "riddle", "clue", 
+                "discover", "reveal", "uncover", "solve", "investigate", "curious", "suspense"],
+    "fear": ["dread", "fear", "terror", "panic", "anxiety", "apprehension", "unease", "foreboding", 
+            "scared", "worried", "nervous", "tense", "apprehensive", "concerned", "afraid"],
+    "atmospheric": ["air", "thick", "heavy", "atmosphere", "mood", "vibe", "feeling", "sense", 
+                   "aura", "energy", "ambiance", "environment", "setting", "scene", "background"],
+    "happy": ["happy", "joy", "excited", "celebrate", "fun", "bliss", "laugh", "smile", "ecstatic",
+             "delighted", "pleased", "content", "cheerful", "joyful", "blissful", "euphoric"],
+    "sad": ["sad", "depressed", "cry", "tear", "loss", "grief", "melancholy", "despair", "broken",
+           "heartbroken", "devastated", "miserable", "sorrow", "unhappy", "down", "blue"],
+    "motivational": ["motivate", "success", "goal", "achieve", "strong", "empower", "victory", "rise",
+                    "conquer", "determined", "focused", "driven", "ambitious", "persistent", "resilient"],
+    "cozy": ["warmth", "fireplace", "home", "quiet", "comfort", "gentle", "cozy", "relieved", "content",
+            "safe", "secure", "peaceful", "tranquil", "calm", "serene", "comforting"],
+    "angry": ["angry", "mad", "furious", "enraged", "irritated", "annoyed", "frustrated", "outraged",
+             "bitter", "resentful", "hostile", "aggressive", "vengeful", "spiteful"],
+    "surprised": ["surprised", "shocked", "amazed", "astonished", "stunned", "astounded", "startled",
+                 "unexpected", "sudden", "unforeseen", "unanticipated", "unpredicted"]
 }
 
 def get_spotify_client():
@@ -1201,5 +1270,6 @@ if __name__ == '__main__':
     
     logger.info(f"🚀 Starting Spotify-Only Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
+
 
 
