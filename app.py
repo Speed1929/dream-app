@@ -4,7 +4,7 @@ os.environ['SPOTIPY_CLIENT_ID'] = '7f1404593f0c4f23a2c6464d36deab37'
 os.environ['SPOTIPY_CLIENT_SECRET'] = '029fcc7c966842cbab01b842c3942765'
 os.environ['SPOTIPY_REDIRECT_URI'] = 'https://dream-app-lpo2.onrender.com/callback'
 
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, request, jsonify, session
 import pandas as pd
 import numpy as np
 from textblob import TextBlob
@@ -451,11 +451,587 @@ def play_on_spotify(track_id):
         logger.error(f"Spotify playback error: {e}")
         return False, str(e)
 
+# HTML content embedded directly
+HTML_CONTENT = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotional Music Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #764ba2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .spotify-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .btn-spotify {
+            background: #1DB954;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-spotify:hover {
+            background: #1ed760;
+            transform: translateY(-2px);
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        #userInput {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            resize: vertical;
+            font-family: inherit;
+            margin-bottom: 15px;
+            min-height: 120px;
+        }
+
+        #userInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .analysis-result {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .emotion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .emotion-tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .tracks-result {
+            display: grid;
+            gap: 15px;
+        }
+
+        .track-card {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .track-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .track-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .track-artist {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .track-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-play {
+            background: #1DB954;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-play:hover {
+            background: #1ed760;
+        }
+
+        .btn-preview {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-preview:hover {
+            background: #764ba2;
+        }
+
+        .audio-preview {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .situation-description {
+            font-style: italic;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .analysis-details {
+            font-size: 14px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #c33;
+        }
+
+        .tracks-count {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .track-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .track-image {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .track-actions {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Emotional Music Companion</h1>
+            <p class="subtitle">I understand complex emotions and find perfect Spotify music for you</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Spotify Connection -->
+            <div class="spotify-section">
+                <button id="connectSpotify" class="btn-spotify">
+                    🔗 Connect Spotify
+                </button>
+                <div id="spotifyStatus" class="status">
+                    🔒 Connect to play music directly on Spotify
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="input-section">
+                <textarea 
+                    id="userInput" 
+                    placeholder="Describe your emotions, situation, or atmosphere... 
+
+Examples:
+• 'Walking through an old stone corridor with hidden secrets'
+• 'Heartbroken after a breakup, feeling completely alone'
+• 'Excited about college entry with romantic expectations'
+• 'Cozy by the fireplace after a long journey'
+• 'Dark longing and mysterious desires'"
+                ></textarea>
+                <button id="analyzeBtn" class="btn-primary">
+                    🎭 Analyze Emotions & Find Music
+                </button>
+            </div>
+
+            <!-- Error Display -->
+            <div id="error" class="error" style="display: none;"></div>
+
+            <!-- Results Section -->
+            <div id="results" class="results-section">
+                <div id="analysisResult" class="analysis-result"></div>
+                <div id="tracksResult" class="tracks-result"></div>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Analyzing emotions and searching for perfect music...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EmotionalMusicCompanion {
+            constructor() {
+                this.checkAuthStatus();
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                document.getElementById('connectSpotify').addEventListener('click', () => this.connectSpotify());
+                document.getElementById('analyzeBtn').addEventListener('click', () => this.analyzeEmotions());
+            }
+
+            async checkAuthStatus() {
+                try {
+                    const response = await fetch('/check-auth');
+                    const data = await response.json();
+                    
+                    const statusElement = document.getElementById('spotifyStatus');
+                    if (data.authenticated) {
+                        statusElement.innerHTML = '✅ Connected to Spotify';
+                        statusElement.style.color = '#1DB954';
+                    } else {
+                        statusElement.innerHTML = '🔒 Connect to play music directly on Spotify';
+                        statusElement.style.color = '#666';
+                    }
+                } catch (error) {
+                    console.error('Auth check failed:', error);
+                }
+            }
+
+            async connectSpotify() {
+                try {
+                    const response = await fetch('/login');
+                    const data = await response.json();
+                    window.location.href = data.auth_url;
+                } catch (error) {
+                    this.showError('Failed to connect to Spotify');
+                }
+            }
+
+            async analyzeEmotions() {
+                const userInput = document.getElementById('userInput').value.trim();
+                
+                if (!userInput) {
+                    this.showError('Please describe your emotions or situation');
+                    return;
+                }
+
+                this.showLoading(true);
+                this.hideError();
+                
+                try {
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: userInput })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        this.showError(data.error);
+                        return;
+                    }
+
+                    this.displayResults(data);
+                    
+                } catch (error) {
+                    this.showError('Failed to analyze emotions. Please try again.');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            displayResults(data) {
+                const resultsSection = document.getElementById('results');
+                const analysisElement = document.getElementById('analysisResult');
+                const tracksElement = document.getElementById('tracksResult');
+
+                // Display analysis
+                analysisElement.innerHTML = this.createAnalysisHTML(data.analysis);
+                
+                // Display tracks
+                tracksElement.innerHTML = this.createTracksHTML(data.spotify_tracks, data.tracks_found);
+                
+                resultsSection.style.display = 'block';
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            createAnalysisHTML(analysis) {
+                const situation = analysis.situation_info;
+                
+                return `
+                    <h3>🎭 Emotional Analysis</h3>
+                    <div class="situation-description">${situation.description}</div>
+                    
+                    <div class="emotion-tags">
+                        ${situation.feelings.slice(0, 4).map(feeling => 
+                            `<span class="emotion-tag">${feeling}</span>`
+                        ).join('')}
+                    </div>
+                    
+                    <div class="analysis-details">
+                        <strong>Detected Scenario:</strong> ${analysis.situation_name.replace('_', ' ')}<br>
+                        <strong>Sentiment:</strong> ${analysis.polarity > 0 ? 'Positive' : analysis.polarity < 0 ? 'Negative' : 'Neutral'} 
+                        (${analysis.polarity.toFixed(2)})<br>
+                        ${analysis.top_emotions.length ? `<strong>Primary Emotions:</strong> ${analysis.top_emotions.join(', ')}` : ''}
+                    </div>
+                `;
+            }
+
+            createTracksHTML(spotifyTracks, tracksFound) {
+                let html = '<h3>🎵 Recommended Spotify Music</h3>';
+                
+                if (tracksFound > 0) {
+                    html += `<div class="tracks-count">Found ${tracksFound} tracks matching your mood</div>`;
+                }
+                
+                // Spotify tracks
+                if (spotifyTracks && spotifyTracks.length > 0) {
+                    html += spotifyTracks.map(track => this.createSpotifyTrackHTML(track)).join('');
+                } else {
+                    html += '<p>No tracks found for this mood. Try describing your emotions differently.</p>';
+                }
+                
+                return html;
+            }
+
+            createSpotifyTrackHTML(track) {
+                const duration = Math.floor(track.duration_ms / 1000 / 60) + ':' + 
+                                String(Math.floor((track.duration_ms / 1000) % 60)).padStart(2, '0');
+                
+                return `
+                    <div class="track-card">
+                        ${track.image ? `<img src="${track.image}" alt="${track.name}" class="track-image">` : 
+                          '<div class="track-image" style="background: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">No Image</div>'}
+                        
+                        <div class="track-info">
+                            <div class="track-name">${track.name}</div>
+                            <div class="track-artist">${track.artist} • ${duration}</div>
+                            
+                            ${track.preview_url ? `
+                                <audio controls class="audio-preview">
+                                    <source src="${track.preview_url}" type="audio/mpeg">
+                                    Your browser does not support audio preview.
+                                </audio>
+                            ` : '<div style="color: #888; font-size: 12px; margin-top: 5px;">No preview available</div>'}
+                        </div>
+                        
+                        <div class="track-actions">
+                            <button class="btn-play" onclick="companion.playSpotifyTrack('${track.id}')">
+                                Play on Spotify
+                            </button>
+                            <a href="${track.external_url}" target="_blank" class="btn-preview">
+                                Open in Spotify
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async playSpotifyTrack(trackId) {
+                try {
+                    const response = await fetch(`/play-spotify/${trackId}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.showMessage('🎵 Playing on Spotify! Check your Spotify app.', 'success');
+                    } else {
+                        this.showMessage(`❌ ${data.message}`, 'error');
+                    }
+                } catch (error) {
+                    this.showError('Failed to play track on Spotify. Make sure you are connected.');
+                }
+            }
+
+            showLoading(show) {
+                document.getElementById('loading').style.display = show ? 'block' : 'none';
+                document.getElementById('analyzeBtn').disabled = show;
+            }
+
+            showError(message) {
+                const errorElement = document.getElementById('error');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+
+            hideError() {
+                document.getElementById('error').style.display = 'none';
+            }
+
+            showMessage(message, type = 'info') {
+                // Create toast notification
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    color: white;
+                    font-weight: bold;
+                    z-index: 1000;
+                    transition: all 0.3s ease;
+                    background: ${type === 'error' ? '#e74c3c' : type === 'success' ? '#2ecc71' : '#3498db'};
+                `;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 4000);
+            }
+        }
+
+        // Initialize the application
+        const companion = new EmotionalMusicCompanion();
+    </script>
+</body>
+</html>
+"""
+
 # --- FLASK ROUTES ---
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return HTML_CONTENT
 
 @app.route('/login')
 def login():
@@ -472,10 +1048,87 @@ def callback():
     try:
         sp = get_spotify_client()
         sp.auth_manager.get_access_token(request.args['code'])
-        return render_template('index.html', spotify_connected=True)
+        # Return success page
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Spotify Connected</title>
+            <style>
+                body { 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .success-box {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 15px;
+                    text-align: center;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    max-width: 400px;
+                }
+                .success { 
+                    color: #1DB954; 
+                    font-size: 24px; 
+                    margin-bottom: 20px;
+                }
+                .message {
+                    color: #666;
+                    margin-bottom: 20px;
+                    line-height: 1.5;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="success-box">
+                <div class="success">✅ Spotify Connected Successfully!</div>
+                <p class="message">You can now close this window and return to the Emotional Music Companion.</p>
+                <button onclick="window.close()" style="
+                    background: #1DB954;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-size: 16px;
+                ">Close Window</button>
+            </div>
+        </body>
+        </html>
+        """
     except Exception as e:
         logger.error(f"Callback error: {e}")
-        return render_template('index.html', spotify_connected=False)
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Connection Failed</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    text-align: center; 
+                    padding: 50px; 
+                }
+                .error { 
+                    color: #e74c3c; 
+                    font-size: 24px; 
+                    margin-bottom: 20px; 
+                }
+            </style>
+        </head>
+        <body>
+            <div class="error">❌ Spotify Connection Failed</div>
+            <p>Error: {str(e)}</p>
+            <p>Please try again.</p>
+        </body>
+        </html>
+        """
 
 @app.route('/analyze', methods=['POST'])
 def analyze_emotion():
@@ -548,3 +1201,4 @@ if __name__ == '__main__':
     
     logger.info(f"🚀 Starting Spotify-Only Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
+
