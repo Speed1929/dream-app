@@ -261,6 +261,13 @@
             border-left: 4px solid #c33;
         }
 
+        .tracks-count {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -279,6 +286,11 @@
                 margin-right: 0;
                 margin-bottom: 10px;
             }
+            
+            .track-actions {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -286,7 +298,7 @@
     <div class="container">
         <header>
             <h1>🎵 Emotional Music Companion</h1>
-            <p class="subtitle">I understand complex emotions and atmospheric situations</p>
+            <p class="subtitle">I understand complex emotions and find perfect Spotify music for you</p>
         </header>
 
         <div class="main-content">
@@ -420,7 +432,7 @@ Examples:
                 analysisElement.innerHTML = this.createAnalysisHTML(data.analysis);
                 
                 // Display tracks
-                tracksElement.innerHTML = this.createTracksHTML(data.local_songs, data.spotify_tracks);
+                tracksElement.innerHTML = this.createTracksHTML(data.spotify_tracks, data.tracks_found);
                 
                 resultsSection.style.display = 'block';
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
@@ -448,43 +460,21 @@ Examples:
                 `;
             }
 
-            createTracksHTML(localSongs, spotifyTracks) {
-                let html = '<h3>🎵 Recommended Music</h3>';
+            createTracksHTML(spotifyTracks, tracksFound) {
+                let html = '<h3>🎵 Recommended Spotify Music</h3>';
                 
-                // Local songs
-                if (localSongs.length > 0) {
-                    html += '<h4>Local Songs</h4>';
-                    html += localSongs.map((song, index) => this.createLocalSongHTML(song, index)).join('');
+                if (tracksFound > 0) {
+                    html += `<div class="tracks-count">Found ${tracksFound} tracks matching your mood</div>`;
                 }
                 
                 // Spotify tracks
-                if (spotifyTracks.length > 0) {
-                    html += '<h4>Spotify Tracks</h4>';
+                if (spotifyTracks && spotifyTracks.length > 0) {
                     html += spotifyTracks.map(track => this.createSpotifyTrackHTML(track)).join('');
-                }
-                
-                if (localSongs.length === 0 && spotifyTracks.length === 0) {
+                } else {
                     html += '<p>No tracks found for this mood. Try describing your emotions differently.</p>';
                 }
                 
                 return html;
-            }
-
-            createLocalSongHTML(song, index) {
-                return `
-                    <div class="track-card">
-                        <div class="track-info">
-                            <div class="track-name">${song.song_name || 'Unknown Song'}</div>
-                            <div class="track-artist">${song.artist || 'Unknown Artist'} • ${song.mood || 'Various Mood'}</div>
-                        </div>
-                        
-                        <div class="track-actions">
-                            <button class="btn-play" onclick="companion.playLocalSong(${index})">
-                                Play Local
-                            </button>
-                        </div>
-                    </div>
-                `;
             }
 
             createSpotifyTrackHTML(track) {
@@ -493,7 +483,8 @@ Examples:
                 
                 return `
                     <div class="track-card">
-                        ${track.image ? `<img src="${track.image}" alt="${track.name}" class="track-image">` : ''}
+                        ${track.image ? `<img src="${track.image}" alt="${track.name}" class="track-image">` : 
+                          '<div class="track-image" style="background: #ddd; display: flex; align-items: center; justify-content: center; color: #666;">No Image</div>'}
                         
                         <div class="track-info">
                             <div class="track-name">${track.name}</div>
@@ -504,7 +495,7 @@ Examples:
                                     <source src="${track.preview_url}" type="audio/mpeg">
                                     Your browser does not support audio preview.
                                 </audio>
-                            ` : ''}
+                            ` : '<div style="color: #888; font-size: 12px; margin-top: 5px;">No preview available</div>'}
                         </div>
                         
                         <div class="track-actions">
@@ -519,33 +510,18 @@ Examples:
                 `;
             }
 
-            async playLocalSong(songIndex) {
-                try {
-                    const response = await fetch(`/play-local/${songIndex}`);
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        this.showMessage(`🎵 Playing: ${data.song}`, 'success');
-                    } else {
-                        this.showMessage(`❌ ${data.error}`, 'error');
-                    }
-                } catch (error) {
-                    this.showError('Failed to play local song');
-                }
-            }
-
             async playSpotifyTrack(trackId) {
                 try {
                     const response = await fetch(`/play-spotify/${trackId}`);
                     const data = await response.json();
                     
                     if (data.success) {
-                        this.showMessage('🎵 Playing on Spotify!', 'success');
+                        this.showMessage('🎵 Playing on Spotify! Check your Spotify app.', 'success');
                     } else {
                         this.showMessage(`❌ ${data.message}`, 'error');
                     }
                 } catch (error) {
-                    this.showError('Failed to play track on Spotify');
+                    this.showError('Failed to play track on Spotify. Make sure you are connected.');
                 }
             }
 
