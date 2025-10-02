@@ -580,7 +580,7 @@ HTML_CONTENT = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emotional Music Companion</title>
+    <title>Dreamers</title>
     <style>
         * {
             margin: 0;
@@ -594,6 +594,31 @@ HTML_CONTENT = """
             color: white;
             min-height: 100vh;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #ccc;
+            font-size: 1.1em;
         }
 
         .app-container {
@@ -603,10 +628,9 @@ HTML_CONTENT = """
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
-            min-height: 100vh;
+            flex-grow: 1;
         }
 
-        /* Background Image Section */
         .background-section {
             position: fixed;
             top: 0;
@@ -621,91 +645,66 @@ HTML_CONTENT = """
             background-repeat: no-repeat;
         }
 
-        /* Left Panel - Input Section */
         .left-panel {
             display: flex;
             flex-direction: column;
-            gap: 30px;
+            gap: 20px;
             padding: 20px;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 3em;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #ccc;
-            font-size: 1.2em;
-        }
-
-        /* Input Section */
         .input-section {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         #userInput {
             width: 100%;
-            padding: 20px;
+            padding: 15px;
             background: rgba(0, 0, 0, 0.6);
             border: 2px solid #667eea;
-            border-radius: 15px;
+            border-radius: 10px;
             color: white;
             font-size: 16px;
             resize: vertical;
             font-family: inherit;
-            min-height: 150px;
-            margin-bottom: 20px;
+            min-height: 120px;
+            margin-bottom: 15px;
         }
 
         #userInput:focus {
             outline: none;
             border-color: #764ba2;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
         }
 
-        /* Round Buttons */
         .round-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 50px;
-            padding: 15px 30px;
-            font-size: 16px;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
             margin: 5px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .round-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .round-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
 
         .btn-large {
-            padding: 20px 40px;
-            font-size: 18px;
-            font-weight: bold;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
         }
 
         .btn-spotify {
@@ -714,26 +713,24 @@ HTML_CONTENT = """
 
         .btn-random {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            margin-top: 20px;
         }
 
-        /* Mood Tags */
         .mood-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
+            gap: 8px;
+            margin: 15px 0;
         }
 
         .mood-tag {
             background: rgba(102, 126, 234, 0.3);
             color: white;
             border: 1px solid #667eea;
-            border-radius: 25px;
-            padding: 10px 20px;
+            border-radius: 20px;
+            padding: 8px 15px;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .mood-tag:hover {
@@ -743,18 +740,16 @@ HTML_CONTENT = """
 
         .mood-tag.active {
             background: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        /* Right Panel - Playlist */
         .right-panel {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            height: fit-content;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
         }
 
@@ -762,13 +757,13 @@ HTML_CONTENT = """
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .playlist-header h2 {
-            font-size: 1.8em;
+            font-size: 1.6em;
             background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -777,20 +772,21 @@ HTML_CONTENT = """
         .tracks-count {
             color: #ccc;
             font-style: italic;
+            font-size: 0.9em;
         }
 
         .playlist {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .track-card {
             display: flex;
             align-items: center;
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 15px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 12px;
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -798,14 +794,14 @@ HTML_CONTENT = """
         .track-card:hover {
             transform: translateY(-2px);
             background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .track-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            margin-right: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            margin-right: 12px;
             object-fit: cover;
         }
 
@@ -814,29 +810,29 @@ HTML_CONTENT = """
         }
 
         .track-name {
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-weight: 600;
+            margin-bottom: 4px;
             color: white;
         }
 
         .track-artist {
             color: #ccc;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .track-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-play {
             background: #1DB954;
             color: white;
             border: none;
-            border-radius: 20px;
-            padding: 8px 15px;
+            border-radius: 15px;
+            padding: 6px 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.3s ease;
         }
 
@@ -849,10 +845,10 @@ HTML_CONTENT = """
             background: #667eea;
             color: white;
             border: none;
-            border-radius: 20px;
-            padding: 8px 15px;
+            border-radius: 15px;
+            padding: 6px 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.3s ease;
         }
 
@@ -863,24 +859,23 @@ HTML_CONTENT = """
 
         .audio-preview {
             width: 100%;
-            margin-top: 10px;
-            border-radius: 10px;
+            margin-top: 8px;
+            border-radius: 8px;
         }
 
-        /* Loading and Status */
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #667eea;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #667eea;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
         }
 
         @keyframes spin {
@@ -889,10 +884,11 @@ HTML_CONTENT = """
         }
 
         .status {
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 8px 0;
             text-align: center;
+            font-size: 14px;
         }
 
         .status.connected {
@@ -910,40 +906,38 @@ HTML_CONTENT = """
         .error {
             background: rgba(231, 76, 60, 0.2);
             color: #e74c3c;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
             border: 1px solid #e74c3c;
         }
 
-        /* Analysis Results */
         .analysis-result {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 3px solid #667eea;
         }
 
         .situation-description {
             font-style: italic;
             color: #ccc;
-            margin: 10px 0;
+            margin: 8px 0;
+            font-size: 14px;
         }
 
         .analysis-details {
-            font-size: 14px;
+            font-size: 13px;
             color: #aaa;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
-        /* Responsive Design */
         @media (max-width: 1024px) {
             .app-container {
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
             .right-panel {
                 max-height: none;
             }
@@ -953,46 +947,41 @@ HTML_CONTENT = """
             .app-container {
                 padding: 10px;
             }
-            
+            .header {
+                padding: 15px 0;
+            }
             h1 {
-                font-size: 2.2em;
+                font-size: 2em;
             }
-            
             .input-section, .right-panel {
-                padding: 20px;
+                padding: 15px;
             }
-            
             .track-card {
                 flex-direction: column;
                 text-align: center;
             }
-            
             .track-image {
                 margin-right: 0;
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
-            
             .track-actions {
                 width: 100%;
                 justify-content: center;
-                margin-top: 10px;
+                margin-top: 8px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Background Image -->
+    <div class="header">
+        <h1>🎵 Dreamers</h1>
+        <p class="subtitle">Describe your emotions and discover perfect music</p>
+    </div>
+
     <div class="background-section"></div>
 
     <div class="app-container">
-        <!-- Left Panel - Input & Controls -->
         <div class="left-panel">
-            <div class="header">
-                <h1>🎵 Emotional Music Companion</h1>
-                <p class="subtitle">Describe your emotions and discover perfect music</p>
-            </div>
-
-            <!-- Spotify Connection -->
             <div class="input-section">
                 <button id="connectSpotify" class="round-btn btn-spotify">
                     🔗 Connect Spotify
@@ -1002,7 +991,6 @@ HTML_CONTENT = """
                 </div>
             </div>
 
-            <!-- Input Section -->
             <div class="input-section">
                 <textarea 
                     id="userInput" 
@@ -1021,38 +1009,32 @@ Examples:
                 </button>
             </div>
 
-            <!-- Mood Tags Section -->
             <div class="input-section">
                 <h3>🎯 Mood Tags</h3>
                 <div id="moodTags" class="mood-tags">
-                    <!-- Mood tags will be dynamically generated here -->
                 </div>
                 <p style="color: #ccc; font-size: 14px; margin-top: 10px;">
                     Click on mood tags to refine your search
                 </p>
             </div>
 
-            <!-- Random Button -->
             <div class="input-section" style="text-align: center;">
                 <button id="randomBtn" class="round-btn btn-large btn-random">
-                    🎲 Play Random Mood Music
+                    🎲 Discover Random Music
                 </button>
                 <p style="color: #ccc; margin-top: 10px;">
-                    Discover random music based on popular moods
+                    Explore music based on random emotional themes
                 </p>
             </div>
 
-            <!-- Error Display -->
             <div id="error" class="error" style="display: none;"></div>
 
-            <!-- Loading -->
             <div id="loading" class="loading" style="display: none;">
                 <div class="spinner"></div>
                 <p>Analyzing emotions and searching for perfect music...</p>
             </div>
         </div>
 
-        <!-- Right Panel - Playlist -->
         <div class="right-panel">
             <div class="playlist-header">
                 <h2>🎵 Your Playlist</h2>
@@ -1097,6 +1079,7 @@ Examples:
                     }
                 } catch (error) {
                     console.error('Auth check failed:', error);
+                    this.showError('Failed to check Spotify connection');
                 }
             }
 
@@ -1104,7 +1087,11 @@ Examples:
                 try {
                     const response = await fetch('/login');
                     const data = await response.json();
-                    window.location.href = data.auth_url;
+                    if (data.auth_url) {
+                        window.location.href = data.auth_url;
+                    } else {
+                        this.showError('Failed to connect to Spotify');
+                    }
                 } catch (error) {
                     this.showError('Failed to connect to Spotify');
                 }
@@ -1147,13 +1134,8 @@ Examples:
             }
 
             displayResults(data) {
-                // Display mood tags
                 this.displayMoodTags(data.mood_keywords);
-                
-                // Display tracks
                 this.displayTracks(data.spotify_tracks, data.tracks_found);
-                
-                // Scroll to playlist
                 document.querySelector('.right-panel').scrollIntoView({ behavior: 'smooth' });
             }
 
@@ -1168,7 +1150,6 @@ Examples:
                     moodTag.className = 'mood-tag';
                     moodTag.textContent = mood;
                     moodTag.addEventListener('click', () => {
-                        // Set input to this mood and search again
                         document.getElementById('userInput').value = mood;
                         this.analyzeEmotions();
                     });
@@ -1228,7 +1209,6 @@ Examples:
             }
 
             async playRandomMusic() {
-                // Popular mood keywords for random selection
                 const randomMoods = [
                     "romantic love", "heartbreak", "joyful celebration", 
                     "dark passion", "calm serenity", "mysterious intrigue",
@@ -1237,7 +1217,7 @@ Examples:
                 
                 const randomMood = randomMoods[Math.floor(Math.random() * randomMoods.length)];
                 document.getElementById('userInput').value = randomMood;
-                this.analyzeEmotions();
+                await this.analyzeEmotions();
             }
 
             async playSpotifyTrack(trackId) {
@@ -1258,6 +1238,7 @@ Examples:
             showLoading(show) {
                 document.getElementById('loading').style.display = show ? 'block' : 'none';
                 document.getElementById('analyzeBtn').disabled = show;
+                document.getElementById('randomBtn').disabled = show;
             }
 
             showError(message) {
@@ -1271,16 +1252,15 @@ Examples:
             }
 
             showMessage(message, type = 'info') {
-                // Create toast notification
                 const toast = document.createElement('div');
                 toast.style.cssText = `
                     position: fixed;
                     top: 20px;
                     right: 20px;
-                    padding: 15px 20px;
+                    padding: 12px 20px;
                     border-radius: 8px;
                     color: white;
-                    font-weight: bold;
+                    font-weight: 600;
                     z-index: 1000;
                     transition: all 0.3s ease;
                     background: ${type === 'error' ? '#e74c3c' : type === 'success' ? '#2ecc71' : '#3498db'};
@@ -1295,7 +1275,6 @@ Examples:
             }
         }
 
-        // Initialize the application
         const companion = new EmotionalMusicCompanion();
     </script>
 </body>
@@ -1326,11 +1305,18 @@ def callback():
         sp.auth_manager.get_access_token(request.args['code'])
         return """
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
-            <title>Spotify Connected</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Dreamers - Spotify Connected</title>
             <style>
-                body { 
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     min-height: 100vh;
@@ -1341,69 +1327,172 @@ def callback():
                     padding: 20px;
                 }
                 .success-box {
-                    background: white;
-                    padding: 40px;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    padding: 30px;
                     border-radius: 15px;
                     text-align: center;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
                     max-width: 400px;
+                    width: 100%;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                 }
-                .success { 
-                    color: #1DB954; 
-                    font-size: 24px; 
-                    margin-bottom: 20px;
+                .success {
+                    color: #1DB954;
+                    font-size: 1.8em;
+                    font-weight: 600;
+                    margin-bottom: 15px;
                 }
                 .message {
-                    color: #666;
+                    color: #ccc;
+                    font-size: 1em;
                     margin-bottom: 20px;
                     line-height: 1.5;
+                }
+                .btn {
+                    background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 25px;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    font-size: 15px;
+                    transition: all 0.3s ease;
+                    margin: 5px;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(29, 185, 84, 0.3);
+                }
+                .btn-secondary {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                .btn-secondary:hover {
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                }
+                @media (max-width: 768px) {
+                    .success-box {
+                        padding: 20px;
+                        margin: 10px;
+                    }
+                    .success {
+                        font-size: 1.5em;
+                    }
+                    .message {
+                        font-size: 0.9em;
+                    }
+                    .btn {
+                        padding: 10px 20px;
+                        font-size: 14px;
+                    }
                 }
             </style>
         </head>
         <body>
             <div class="success-box">
                 <div class="success">✅ Spotify Connected Successfully!</div>
-                <p class="message">You can now close this window and return to the Emotional Music Companion.</p>
-                <button onclick="window.close()" style="
-                    background: #1DB954;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    font-size: 16px;
-                ">Close Window</button>
+                <p class="message">You're now connected to Dreamers. Return to the app to discover music that matches your emotions.</p>
+                <div>
+                    <button onclick="window.location.href='/'" class="btn">Return to Dreamers</button>
+                    <button onclick="window.close()" class="btn btn-secondary">Close Window</button>
+                </div>
             </div>
         </body>
         </html>
         """
     except Exception as e:
         logger.error(f"Callback error: {e}")
-        return f"""
+        return """
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
-            <title>Connection Failed</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Dreamers - Connection Failed</title>
             <style>
-                body { 
-                    font-family: Arial, sans-serif; 
-                    text-align: center; 
-                    padding: 50px; 
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
                 }
-                .error { 
-                    color: #e74c3c; 
-                    font-size: 24px; 
-                    margin-bottom: 20px; 
+                body {
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .error-box {
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    padding: 30px;
+                    border-radius: 15px;
+                    text-align: center;
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    width: 100%;
+                    border: 1px solid rgba(231, 76, 60, 0.5);
+                }
+                .error {
+                    color: #e74c3c;
+                    font-size: 1.8em;
+                    font-weight: 600;
+                    margin-bottom: 15px;
+                }
+                .message {
+                    color: #ccc;
+                    font-size: 1em;
+                    margin-bottom: 20px;
+                    line-height: 1.5;
+                }
+                .btn {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 12px 25px;
+                    border-radius: 25px;
+                    cursor: pointer;
+                    font-size: 15px;
+                    transition: all 0.3s ease;
+                }
+                .btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                }
+                @media (max-width: 768px) {
+                    .error-box {
+                        padding: 20px;
+                        margin: 10px;
+                    }
+                    .error {
+                        font-size: 1.5em;
+                    }
+                    .message {
+                        font-size: 0.9em;
+                    }
+                    .btn {
+                        padding: 10px 20px;
+                        font-size: 14px;
+                    }
                 }
             </style>
         </head>
         <body>
-            <div class="error">❌ Spotify Connection Failed</div>
-            <p>Error: {str(e)}</p>
-            <p>Please try again.</p>
+            <div class="error-box">
+                <div class="error">❌ Spotify Connection Failed</div>
+                <p class="message">Error: {}</p>
+                <p class="message">Please try connecting again.</p>
+                <button onclick="window.location.href='/'" class="btn">Return to Dreamers</button>
+            </div>
         </body>
         </html>
-        """
+        """.format(str(e))
 
 @app.route('/analyze', methods=['POST'])
 def analyze_emotion():
