@@ -3,15 +3,14 @@ import os
 os.environ['SPOTIPY_CLIENT_ID'] = '7f1404593f0c4f23a2c6464d36deab37'
 os.environ['SPOTIPY_CLIENT_SECRET'] = '029fcc7c966842cbab01b842c3942765'
 os.environ['SPOTIPY_REDIRECT_URI'] = 'https://dream-app-lpo2.onrender.com/callback'
+
 from flask import Flask, render_template, request, jsonify, session
 import pandas as pd
 import numpy as np
 from textblob import TextBlob
 import re
 import random
-import pygame
 import time
-from transformers import pipeline
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
@@ -28,44 +27,13 @@ app.secret_key = os.getenv('SECRET_KEY', 'emotional-music-companion-secret-key')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Now set your app variables to use these values
+# Spotify credentials
 SPOTIFY_CLIENT_ID = '7f1404593f0c4f23a2c6464d36deab37'
 SPOTIFY_CLIENT_SECRET = '029fcc7c966842cbab01b842c3942765'
 SPOTIFY_REDIRECT_URI = 'https://dream-app-lpo2.onrender.com/callback'
 
-# Initialize pygame mixer
-try:
-    pygame.mixer.init()
-    logger.info("✅ Audio system initialized!")
-except Exception as e:
-    logger.error(f"❌ Audio system error: {e}")
-
-# Load the emotion classifier
-try:
-    emotion_classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion")
-    logger.info("✅ Advanced emotion classifier loaded!")
-except Exception as e:
-    logger.warning(f"⚠️ Could not load advanced classifier: {e}. Falling back to basic analysis.")
-    emotion_classifier = None
-
-# --- Load CSV & Define Unique Moods ---
-try:
-    df = pd.read_csv('songs.csv', quoting=1, on_bad_lines='skip')
-    df['mood_lower'] = df['mood'].str.lower().str.strip()
-    logger.info(f"✅ Loaded {len(df)} songs from CSV")
-except Exception as e:
-    logger.error(f"❌ Error loading CSV: {e}")
-    df = pd.DataFrame()
-
-# Folder containing all songs
-folder = "songs"
-files = []
-if os.path.exists(folder):
-    files = os.listdir(folder)
-    files_lower = [f.lower() for f in files]
-    logger.info(f"✅ Found {len(files)} audio files")
-else:
-    logger.warning(f"⚠️ Songs folder '{folder}' not found")
+# Remove emotion classifier (pytorch dependency) and use TextBlob only
+logger.info("✅ Using lightweight TextBlob for sentiment analysis")
 
 # --- EMOTION TO MOODS MAPPING ---
 emotion_to_moods = {
@@ -270,12 +238,9 @@ emotional_words = {
 def get_spotify_client():
     """Get Spotify client with OAuth"""
     try:
-        # Use direct values instead of variables
         client_id = SPOTIFY_CLIENT_ID or '7f1404593f0c4f23a2c6464d36deab37'
         client_secret = SPOTIFY_CLIENT_SECRET or '029fcc7c966842cbab01b842c3942765'
         redirect_uri = SPOTIFY_REDIRECT_URI or 'https://dream-app-lpo2.onrender.com/callback'
-        
-        print(f"DEBUG: Using client_id = {client_id}")
         
         cache_handler = spotipy.cache_handler.FlaskSessionCacheHandler(session)
         auth_manager = SpotifyOAuth(
@@ -290,20 +255,15 @@ def get_spotify_client():
     except Exception as e:
         logger.error(f"Error creating Spotify client: {e}")
         return None
-    
+
 def understand_complex_emotions(user_input):
-    """Analyze user input for emotional context"""
+    """Analyze user input for emotional context using TextBlob only"""
     user_input_lower = user_input.lower()
     
     # Basic TextBlob sentiment
     blob = TextBlob(user_input)
     polarity = blob.sentiment.polarity
     subjectivity = blob.sentiment.subjectivity
-    
-    # Advanced emotion classification
-    emotion_results = []
-    if emotion_classifier:
-        emotion_results = emotion_classifier(user_input)
     
     # Emotional word scoring
     emotion_scores = {}
@@ -338,13 +298,6 @@ def understand_complex_emotions(user_input):
         elif info['sentiment_bias'] < 0 and polarity < 0:
             sentiment_adjust = abs(polarity) * 10
         score += sentiment_adjust
-        
-        # Advanced AI emotion boost
-        if emotion_classifier:
-            for result in emotion_results:
-                emotion_label = result['label'].lower()
-                if emotion_label in info['emotion_map']:
-                    score += result['score'] * info['emotion_map'][emotion_label] * 10
         
         # Context patterns
         if any(word in user_input_lower for word in ['dread', 'danger', 'fear']) and any(word in user_input_lower for word in ['longing', 'desire', 'secret']):
@@ -408,8 +361,20 @@ def understand_complex_emotions(user_input):
     
     situation_info = emotional_situations[best_situation]
     
-    # Override moods with detected emotion
-    top_emotion = emotion_results[0]['label'].lower() if emotion_classifier and emotion_results else "other"
+    # Determine emotion based on sentiment and word scores
+    if polarity > 0.3:
+        top_emotion = "joy"
+    elif polarity < -0.3:
+        top_emotion = "sadness"
+    elif emotion_scores.get('romantic', 0) > 3:
+        top_emotion = "love"
+    elif emotion_scores.get('fear', 0) > 3:
+        top_emotion = "fear"
+    elif emotion_scores.get('anger', 0) > 3:
+        top_emotion = "anger"
+    else:
+        top_emotion = "other"
+    
     situation_info['moods'] = emotion_to_moods.get(top_emotion, situation_info['moods'])
     
     return {
@@ -418,90 +383,10 @@ def understand_complex_emotions(user_input):
         'polarity': polarity,
         'subjectivity': subjectivity,
         'emotion_scores': emotion_scores,
-        'top_emotions': [r['label'] for r in emotion_results[:2]] if emotion_results else []
+        'top_emotions': [top_emotion]
     }
 
-def play_audio_file(file_path):
-    """Play local audio file"""
-    try:
-        pygame.mixer.music.load(file_path)
-        pygame.mixer.music.play()
-        return True
-    except Exception as e:
-        logger.error(f"Audio error: {e}")
-        return False
-
-def find_songs_for_situation(situation_info, polarity):
-    """Find songs matching the emotional situation"""
-    possible_moods = situation_info['moods'].copy()
-    
-    # Mood mapping for better matching
-    mood_mapping = {
-        "romantic mystery": "dark romance",
-        "introspection fear": "dark romance", 
-        "obsessive love": "dark romance",
-        "soothing romance": "romantic",
-        "calm dreamy": "calm introspection",
-        "reflective longing": "introspection loss",
-        "joyful romance": "sweet love",
-        "romantic adoration": "sweet love",
-        "hope new start": "romantic"
-    }
-    
-    # Try exact/mapped moods first
-    for mood in possible_moods:
-        mapped_mood = mood_mapping.get(mood.lower(), mood.lower())
-        songs_for_mood = df[df['mood_lower'] == mapped_mood].copy()
-        
-        if not songs_for_mood.empty:
-            songs_for_mood['file_path_abs'] = songs_for_mood.apply(match_file, axis=1)
-            playable_songs = songs_for_mood.dropna(subset=['file_path_abs'])
-            
-            if len(playable_songs) > 0:
-                return playable_songs, mood
-    
-    # Fallback to any playable songs
-    all_playable_songs = []
-    for _, song in df.iterrows():
-        file_path = match_file(song)
-        if file_path and os.path.exists(file_path):
-            all_playable_songs.append((song, file_path))
-    
-    if all_playable_songs:
-        return pd.DataFrame([s[0] for s in all_playable_songs]), "various moods"
-    
-    return pd.DataFrame(), "none"
-
-def match_file(song_row):
-    """Match song with local audio file"""
-    song_name = song_row['song_name']
-    file_path = song_row.get('file_path', '')
-    filename = song_row.get('filename', '')
-    
-    if pd.notna(file_path) and os.path.exists(str(file_path).replace('\\', '/')):
-        return str(file_path).replace('\\', '/')
-    
-    if pd.notna(filename):
-        possible_path = os.path.join(folder, str(filename))
-        if os.path.exists(possible_path):
-            return possible_path
-    
-    clean_song_name = re.sub(r'[^\w\s]', '', str(song_name).lower().strip())
-    
-    for original_file in files:
-        clean_file = re.sub(r'[^\w\s]', '', original_file.lower().replace('.mp3', '').replace('.m4a', ''))
-        
-        if (clean_song_name in clean_file or 
-            clean_file in clean_song_name or
-            len(set(clean_song_name.split()) & set(clean_file.split())) >= 1):
-            
-            matched_path = os.path.join(folder, original_file)
-            if os.path.exists(matched_path):
-                return matched_path
-    
-    return None
-
-def search_spotify_tracks(mood_keywords, limit=10):
+def search_spotify_tracks(mood_keywords, limit=15):
     """Search Spotify for tracks based on mood"""
     try:
         sp = get_spotify_client()
@@ -509,7 +394,13 @@ def search_spotify_tracks(mood_keywords, limit=10):
             return []
         
         # Combine mood keywords for search
-        search_query = " OR ".join(mood_keywords[:3])
+        search_terms = []
+        for keyword in mood_keywords[:3]:
+            # Clean up the keyword for better search
+            clean_keyword = re.sub(r'[^\w\s]', '', keyword)
+            search_terms.append(clean_keyword)
+        
+        search_query = " OR ".join(search_terms)
         
         results = sp.search(
             q=search_query,
@@ -532,6 +423,7 @@ def search_spotify_tracks(mood_keywords, limit=10):
             }
             tracks.append(track_info)
         
+        logger.info(f"✅ Found {len(tracks)} Spotify tracks for query: {search_query}")
         return tracks
     
     except Exception as e:
@@ -548,7 +440,7 @@ def play_on_spotify(track_id):
         # Get available devices
         devices = sp.devices()
         if not devices['devices']:
-            return False, "No active Spotify devices found"
+            return False, "No active Spotify devices found. Please open Spotify on any device."
         
         # Start playback on first available device
         device_id = devices['devices'][0]['id']
@@ -556,6 +448,7 @@ def play_on_spotify(track_id):
         return True, "Playing on Spotify"
     
     except Exception as e:
+        logger.error(f"Spotify playback error: {e}")
         return False, str(e)
 
 # --- FLASK ROUTES ---
@@ -566,13 +459,23 @@ def index():
 
 @app.route('/login')
 def login():
-    auth_url = get_spotify_client().auth_manager.get_authorize_url()
-    return jsonify({'auth_url': auth_url})
+    try:
+        sp = get_spotify_client()
+        auth_url = sp.auth_manager.get_authorize_url()
+        return jsonify({'auth_url': auth_url})
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        return jsonify({'error': 'Failed to generate auth URL'}), 500
 
 @app.route('/callback')
 def callback():
-    get_spotify_client().auth_manager.get_access_token(request.args['code'])
-    return render_template('index.html', spotify_connected=True)
+    try:
+        sp = get_spotify_client()
+        sp.auth_manager.get_access_token(request.args['code'])
+        return render_template('index.html', spotify_connected=True)
+    except Exception as e:
+        logger.error(f"Callback error: {e}")
+        return render_template('index.html', spotify_connected=False)
 
 @app.route('/analyze', methods=['POST'])
 def analyze_emotion():
@@ -585,49 +488,22 @@ def analyze_emotion():
         # Analyze emotions
         analysis_result = understand_complex_emotions(user_input)
         
-        # Get local songs
-        local_songs, detected_mood = find_songs_for_situation(
-            analysis_result['situation_info'], 
-            analysis_result['polarity']
-        )
-        
-        # Search Spotify
+        # Search Spotify with mood keywords
         mood_keywords = analysis_result['situation_info']['moods'][:5]
         spotify_tracks = search_spotify_tracks(mood_keywords)
         
         # Prepare response
         response = {
             'analysis': analysis_result,
-            'local_songs': local_songs.to_dict('records') if not local_songs.empty else [],
             'spotify_tracks': spotify_tracks,
-            'mood_keywords': mood_keywords
+            'mood_keywords': mood_keywords,
+            'tracks_found': len(spotify_tracks)
         }
         
         return jsonify(response)
     
     except Exception as e:
         logger.error(f"Analysis error: {e}")
-        return jsonify({'error': str(e)})
-
-@app.route('/play-local/<int:song_id>')
-def play_local_song(song_id):
-    try:
-        song = df.iloc[song_id].to_dict()
-        file_path = match_file(song)
-        
-        if file_path and os.path.exists(file_path):
-            success = play_audio_file(file_path)
-            if success:
-                return jsonify({
-                    'success': True, 
-                    'message': f'Playing: {song["song_name"]}',
-                    'song': song['song_name'],
-                    'artist': song['artist']
-                })
-        
-        return jsonify({'error': 'Audio file not found'}), 404
-        
-    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/play-spotify/<track_id>')
@@ -635,33 +511,40 @@ def play_spotify_track(track_id):
     success, message = play_on_spotify(track_id)
     return jsonify({'success': success, 'message': message})
 
-@app.route('/stop-audio')
-def stop_audio():
-    try:
-        pygame.mixer.music.stop()
-        return jsonify({'success': True, 'message': 'Playback stopped'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
 @app.route('/check-auth')
 def check_auth():
     try:
         sp = get_spotify_client()
         if sp.current_user():
             return jsonify({'authenticated': True})
-    except:
-        pass
+    except Exception as e:
+        logger.error(f"Auth check error: {e}")
     return jsonify({'authenticated': False})
+
+@app.route('/get-user-info')
+def get_user_info():
+    try:
+        sp = get_spotify_client()
+        user = sp.current_user()
+        return jsonify({
+            'authenticated': True,
+            'user_name': user.get('display_name', 'User'),
+            'user_id': user.get('id')
+        })
+    except Exception as e:
+        logger.error(f"User info error: {e}")
+        return jsonify({'authenticated': False})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    # Debug: Check what's actually being loaded
+    
+    # Debug info
     print("=== DEBUG: Environment Variables ===")
     print(f"SPOTIFY_CLIENT_ID: {os.getenv('SPOTIFY_CLIENT_ID')}")
     print(f"SPOTIFY_CLIENT_SECRET: {os.getenv('SPOTIFY_CLIENT_SECRET')}")
     print(f"Current directory: {os.getcwd()}")
-    print(f".env file exists: {os.path.exists('.env')}")
     print("====================================")
-    logger.info(f"🚀 Starting Emotional Music Companion on port {port}")
+    
+    logger.info(f"🚀 Starting Spotify-Only Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
