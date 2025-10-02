@@ -468,7 +468,7 @@ HTML_CONTENT = """
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: black;
             min-height: 100vh;
             color: #333;
             padding: 20px;
@@ -550,7 +550,7 @@ HTML_CONTENT = """
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: black;
             color: white;
             border: none;
             padding: 15px 30px;
@@ -752,7 +752,7 @@ HTML_CONTENT = """
 <body>
     <div class="container">
         <header>
-            <h1>🎵 Emotional Music Companion</h1>
+            <h1>🎵 Daydreamers</h1>
             <p class="subtitle">I understand complex emotions and find perfect Spotify music for you</p>
         </header>
 
@@ -1201,4 +1201,5 @@ if __name__ == '__main__':
     
     logger.info(f"🚀 Starting Spotify-Only Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
+
 
