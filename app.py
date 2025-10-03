@@ -43,7 +43,7 @@ emotion_to_moods = {
         "playful tension", "romantic banter", "flirty moments", "teasing romance", "playful seduction"
     ],
     "love_devotion": [
-        "sweet love", "romantic adoration", "devotion", "boundless devotion", "devotional bond",
+        "sweet love", "romantic adoration", "devotion", "boundless devotion", "devotional bond", "caring",
         "faith love", "devotion darling", "soothing romance", "necessary love", "valentine love",
         "you beloved", "with you", "little love", "heart redefined", "romantic story", "devotion",
         "faithful love", "eternal devotion", "unconditional love", "soulmate connection", "deep devotion",
@@ -56,10 +56,10 @@ emotion_to_moods = {
         "volcanic love", "fiery romance", "passionate embrace", "intense connection", "burning love"
     ],
     "dark_romance": [
-        "dark romance", "obsessive love", "possessive love", "jealous devotion", "intense obsession",
+        "dark romance", "obsessive love", "possessive love", "jealous devotion", "intense obsession", "mafia", "vampire"
         "forbidden desire", "dangerous attraction", "toxic passion", "consuming love", "unhealthy attachment",
         "dark devotion", "fatal attraction", "obsessive possession", "intense yearning", "dangerous romance",
-        "forbidden romance", "taboo love", "secret obsession", "gothic love", "twisted desire"
+        "forbidden romance", "taboo love", "secret obsession", "gothic love", "twisted desire", "kidnapped", "forced"
     ],
     "calm_peaceful": [
         "soothing romance", "gentle romance", "calm dreamy", "peaceful love", "tranquil moments",
@@ -98,17 +98,17 @@ emotion_to_moods = {
     "sensual_intimate": [
         "passionate dance", "intimate moments", "sensual romance", "tender love", "intimate connection",
         "sensual passion", "tender moments", "intimate devotion", "sensual desire", "tender romance",
-        "intimate passion", "sensual love", "tender intimacy", "sensual connection", "intimate bond"
+        "intimate passion", "sensual love", "tender intimacy", "sensual connection", "intimate bond", "sex"
     ],
     "angry_intense": [
         "divine jealousy", "intense fury", "betrayal pain", "broken trust", "revenge motivation",
         "righteous anger", "passionate rage", "fiery determination", "protective anger", "defensive strength",
-        "angry love", "fiery passion", "intense emotion", "burning anger", "righteous fury"
+        "angry love", "fiery passion", "intense emotion", "burning anger", "righteous fury", "angry"
     ],
     "fear_anxiety": [
         "introspection fear", "anxious love", "uncertain future", "heart apprehension", "relationship anxiety",
         "fearful devotion", "protective fear", "worried love", "apprehensive romance", "nervous love",
-        "anxious heart", "fearful love", "uncertain romance", "apprehensive devotion", "worried romance"
+        "anxious heart", "fearful love", "uncertain romance", "apprehensive devotion", "worried romance", "fear", "scared"
     ],
     "surprise_excitement": [
         "playful confusion", "sudden love", "unexpected romance", "surprise attraction", "whirlwind romance",
@@ -159,7 +159,7 @@ emotional_situations = {
             r"(intense.*gaze|consuming.*passion|volcanic.*emotion)",
             r"(heated.*embrace|sizzling.*chemistry|wild.*passion)"
         ],
-        "moods": ["passion_intensity", "sensual_intimate", "dark_romance"],
+        "moods": ["passion_intensity", "sensual_intimate", "dark_romance", "fear"],
         "description": "Intense, burning passion and electric connection",
         "sentiment_bias": 0.2,
         "emotion_map": {"passion_intensity": 0.9, "sensual_intimate": 0.7, "dark_romance": 0.4}
@@ -167,7 +167,7 @@ emotional_situations = {
     
     # Dark Romance Spectrum
     "dark_obsessive": {
-        "feelings": ["obsessed", "possessive", "jealous", "consuming", "controlling", "protective", "intense"],
+        "feelings": ["obsessed", "possessive", "jealous", "consuming", "controlling", "protective", "intense", "psycho love"],
         "context_patterns": [
             r"(obsess|possess|jealous|consum|control|protective|intense)",
             r"(can't.*live.*without|won't.*let.*go|belongs.*to.*me)",
@@ -234,7 +234,7 @@ emotional_situations = {
         "emotion_map": {"joy_happiness": 0.9, "love_devotion": 0.7, "surprise_excitement": 0.5}
     },
     "heartbreak_loss": {
-        "feelings": ["heartbroken", "devastated", "shattered", "grieving", "lost", "empty", "numb"],
+        "feelings": ["heartbroken", "devastated", "shattered", "grieving", "lost", "empty", "numb", "lonely"],
         "context_patterns": [
             r"(heartbroken|devastated|shattered|grieving|lost|empty|numb)",
             r"(broken.*heart|shattered.*dreams|devastated.*soul)",
@@ -1565,3 +1565,4 @@ if __name__ == '__main__':
     
     logger.info(f"🚀 Starting Context-Aware Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
+
