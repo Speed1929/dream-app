@@ -343,31 +343,46 @@ emotional_situations = {
     }
 }
 
+# Common English words for basic validation
+COMMON_ENGLISH_WORDS = {
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
+    'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
+    'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
+    'this', 'that', 'these', 'those', 'my', 'your', 'his', 'her', 'its', 'our', 'their',
+    'love', 'like', 'hate', 'want', 'need', 'feel', 'happy', 'sad', 'angry', 'scared',
+    'good', 'bad', 'beautiful', 'ugly', 'big', 'small', 'hot', 'cold', 'new', 'old',
+    'time', 'day', 'night', 'week', 'month', 'year', 'today', 'tomorrow', 'yesterday'
+}
+
 # --- UNIVERSAL EMOTION ANALYZER ---
 def analyze_universal_emotions(user_input):
     """Lightweight universal emotion analysis that understands romantic/emotional situations"""
     user_input_lower = user_input.lower()
     
-    # Check for nonsense words or gibberish
+    # Check for nonsense words or gibberish using common English words
     words = user_input_lower.split()
-    english_words = set(nltk.corpus.words.words())
     
     # Calculate the percentage of recognizable words
     if len(words) > 0:
-        recognizable_words = sum(1 for word in words if word.strip(".,!?;:'\"") in english_words)
+        recognizable_words = sum(1 for word in words if word.strip(".,!?;:'\"") in COMMON_ENGLISH_WORDS)
         word_recognition_ratio = recognizable_words / len(words)
     else:
         word_recognition_ratio = 0
     
     # If input contains mostly nonsense words, return confusion
-    if len(words) >= 1 and word_recognition_ratio < 0.3:
+    if len(words) >= 3 and word_recognition_ratio < 0.3:
         return {
+            'situation_name': 'unclear_input',
+            'situation_info': {
+                'description': "I'm not sure I understand what you're expressing. Could you rephrase that?",
+                'dynamic_moods': ['uncertain', 'confused', 'questioning']
+            },
+            'polarity': 0.0,
+            'subjectivity': 0.0,
             'primary_emotion': 'confused',
-            'primary_mood': 'uncertain',
-            'situation': 'unclear_input',
-            'description': "I'm not sure I understand what you're expressing. Could you rephrase that?",
-            'confidence': 'low',
-            'moods': ['uncertain', 'confused', 'questioning']
+            'confidence_score': 0,
+            'mood_keywords': ['uncertain', 'confused', 'questioning']
         }
     
     # Enhanced sentiment analysis with TextBlob (lightweight)
@@ -596,7 +611,7 @@ def play_on_spotify(track_id):
         logger.error(f"Spotify playback error: {e}")
         return False, str(e)
 
-# HTML content remains the same (too long to include here, but it's unchanged)
+# HTML content remains the same
 HTML_CONTENT = """
 <!DOCTYPE html>
 <html lang="en">
