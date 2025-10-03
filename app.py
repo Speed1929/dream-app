@@ -348,6 +348,28 @@ def analyze_universal_emotions(user_input):
     """Lightweight universal emotion analysis that understands romantic/emotional situations"""
     user_input_lower = user_input.lower()
     
+    # Check for nonsense words or gibberish
+    words = user_input_lower.split()
+    english_words = set(nltk.corpus.words.words())
+    
+    # Calculate the percentage of recognizable words
+    if len(words) > 0:
+        recognizable_words = sum(1 for word in words if word.strip(".,!?;:'\"") in english_words)
+        word_recognition_ratio = recognizable_words / len(words)
+    else:
+        word_recognition_ratio = 0
+    
+    # If input contains mostly nonsense words, return confusion
+    if len(words) >= 1 and word_recognition_ratio < 0.3:
+        return {
+            'primary_emotion': 'confused',
+            'primary_mood': 'uncertain',
+            'situation': 'unclear_input',
+            'description': "I'm not sure I understand what you're expressing. Could you rephrase that?",
+            'confidence': 'low',
+            'moods': ['uncertain', 'confused', 'questioning']
+        }
+    
     # Enhanced sentiment analysis with TextBlob (lightweight)
     blob = TextBlob(user_input)
     polarity = blob.sentiment.polarity
