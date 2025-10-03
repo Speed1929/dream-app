@@ -43,7 +43,7 @@ emotion_to_moods = {
         "playful tension", "romantic banter", "flirty moments", "teasing romance", "playful seduction"
     ],
     "love_devotion": [
-        "sweet love", "romantic adoration", "devotion", "boundless devotion", "devotional bond", "caring",
+        "sweet love", "romantic adoration", "devotion", "boundless devotion", "devotional bond",
         "faith love", "devotion darling", "soothing romance", "necessary love", "valentine love",
         "you beloved", "with you", "little love", "heart redefined", "romantic story", "devotion",
         "faithful love", "eternal devotion", "unconditional love", "soulmate connection", "deep devotion",
@@ -56,10 +56,10 @@ emotion_to_moods = {
         "volcanic love", "fiery romance", "passionate embrace", "intense connection", "burning love"
     ],
     "dark_romance": [
-        "dark romance", "obsessive love", "possessive love", "jealous devotion", "intense obsession", "mafia", "vampire"
+        "dark romance", "obsessive love", "possessive love", "jealous devotion", "intense obsession",
         "forbidden desire", "dangerous attraction", "toxic passion", "consuming love", "unhealthy attachment",
         "dark devotion", "fatal attraction", "obsessive possession", "intense yearning", "dangerous romance",
-        "forbidden romance", "taboo love", "secret obsession", "gothic love", "twisted desire", "kidnapped", "forced"
+        "forbidden romance", "taboo love", "secret obsession", "gothic love", "twisted desire"
     ],
     "calm_peaceful": [
         "soothing romance", "gentle romance", "calm dreamy", "peaceful love", "tranquil moments",
@@ -98,17 +98,17 @@ emotion_to_moods = {
     "sensual_intimate": [
         "passionate dance", "intimate moments", "sensual romance", "tender love", "intimate connection",
         "sensual passion", "tender moments", "intimate devotion", "sensual desire", "tender romance",
-        "intimate passion", "sensual love", "tender intimacy", "sensual connection", "intimate bond", "sex"
+        "intimate passion", "sensual love", "tender intimacy", "sensual connection", "intimate bond"
     ],
     "angry_intense": [
         "divine jealousy", "intense fury", "betrayal pain", "broken trust", "revenge motivation",
         "righteous anger", "passionate rage", "fiery determination", "protective anger", "defensive strength",
-        "angry love", "fiery passion", "intense emotion", "burning anger", "righteous fury", "angry"
+        "angry love", "fiery passion", "intense emotion", "burning anger", "righteous fury"
     ],
     "fear_anxiety": [
         "introspection fear", "anxious love", "uncertain future", "heart apprehension", "relationship anxiety",
         "fearful devotion", "protective fear", "worried love", "apprehensive romance", "nervous love",
-        "anxious heart", "fearful love", "uncertain romance", "apprehensive devotion", "worried romance", "fear", "scared"
+        "anxious heart", "fearful love", "uncertain romance", "apprehensive devotion", "worried romance"
     ],
     "surprise_excitement": [
         "playful confusion", "sudden love", "unexpected romance", "surprise attraction", "whirlwind romance",
@@ -159,7 +159,7 @@ emotional_situations = {
             r"(intense.*gaze|consuming.*passion|volcanic.*emotion)",
             r"(heated.*embrace|sizzling.*chemistry|wild.*passion)"
         ],
-        "moods": ["passion_intensity", "sensual_intimate", "dark_romance", "fear"],
+        "moods": ["passion_intensity", "sensual_intimate", "dark_romance"],
         "description": "Intense, burning passion and electric connection",
         "sentiment_bias": 0.2,
         "emotion_map": {"passion_intensity": 0.9, "sensual_intimate": 0.7, "dark_romance": 0.4}
@@ -167,7 +167,7 @@ emotional_situations = {
     
     # Dark Romance Spectrum
     "dark_obsessive": {
-        "feelings": ["obsessed", "possessive", "jealous", "consuming", "controlling", "protective", "intense", "psycho love"],
+        "feelings": ["obsessed", "possessive", "jealous", "consuming", "controlling", "protective", "intense"],
         "context_patterns": [
             r"(obsess|possess|jealous|consum|control|protective|intense)",
             r"(can't.*live.*without|won't.*let.*go|belongs.*to.*me)",
@@ -234,7 +234,7 @@ emotional_situations = {
         "emotion_map": {"joy_happiness": 0.9, "love_devotion": 0.7, "surprise_excitement": 0.5}
     },
     "heartbreak_loss": {
-        "feelings": ["heartbroken", "devastated", "shattered", "grieving", "lost", "empty", "numb", "lonely"],
+        "feelings": ["heartbroken", "devastated", "shattered", "grieving", "lost", "empty", "numb"],
         "context_patterns": [
             r"(heartbroken|devastated|shattered|grieving|lost|empty|numb)",
             r"(broken.*heart|shattered.*dreams|devastated.*soul)",
@@ -345,46 +345,47 @@ emotional_situations = {
 
 # --- UNIVERSAL EMOTION ANALYZER ---
 def analyze_universal_emotions(user_input):
-    """Universal emotion analysis that understands any romantic/emotional situation"""
+    """Lightweight universal emotion analysis that understands romantic/emotional situations"""
     user_input_lower = user_input.lower()
     
-    # Enhanced sentiment analysis
+    # Enhanced sentiment analysis with TextBlob (lightweight)
     blob = TextBlob(user_input)
     polarity = blob.sentiment.polarity
     subjectivity = blob.sentiment.subjectivity
     
-    # Multi-dimensional situation scoring
+    # Multi-dimensional situation scoring with optimized processing
     situation_scores = {}
+    
+    # Pre-compile regex patterns for better performance
+    compiled_patterns = {}
+    for situation, info in emotional_situations.items():
+        compiled_patterns[situation] = [re.compile(pattern) for pattern in info['context_patterns']]
     
     for situation, info in emotional_situations.items():
         score = 0.0
         
-        # Context pattern matching (highest priority)
-        for pattern in info['context_patterns']:
+        # Context pattern matching (highest priority) - optimized
+        for pattern in compiled_patterns[situation]:
             try:
-                matches = re.findall(pattern, user_input_lower)
+                matches = pattern.findall(user_input_lower)
                 if matches:
-                    score += len(matches) * 12  # High weight for contextual understanding
+                    score += len(matches) * 10  # Slightly reduced weight for performance
             except:
                 continue
         
-        # Feeling word matching
-        for feeling in info['feelings']:
-            if re.search(r'\b' + re.escape(feeling) + r'\b', user_input_lower):
-                score += 6
+        # Feeling word matching - optimized with set operations
+        feeling_matches = sum(1 for feeling in info['feelings'] if feeling in user_input_lower)
+        score += feeling_matches * 5
         
-        # Sentiment alignment
+        # Sentiment alignment - simplified calculation
         if abs(polarity) > 0.1:
             if (info['sentiment_bias'] > 0 and polarity > 0) or (info['sentiment_bias'] < 0 and polarity < 0):
-                sentiment_adjust = abs(polarity) * 25
+                sentiment_adjust = abs(polarity) * 20
                 score += sentiment_adjust
         
-        # Length and descriptive bonus
+        # Length bonus - simplified
         word_count = len(user_input.split())
-        if word_count > 12:
-            score += 8  # Bonus for detailed descriptions
-        if word_count > 20:
-            score += 8
+        score += min(15, word_count // 5)  # Capped bonus based on length
         
         situation_scores[situation] = score
     
@@ -1565,4 +1566,3 @@ if __name__ == '__main__':
     
     logger.info(f"🚀 Starting Context-Aware Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
-
