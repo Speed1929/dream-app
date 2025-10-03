@@ -1319,7 +1319,6 @@ Examples:
 </html>
 """
 
-
 # --- FLASK ROUTES ---
 
 @app.route('/')
@@ -1531,7 +1530,6 @@ def callback():
         </body>
         </html>
         """.format(str(e))
-
 @app.route('/analyze', methods=['POST'])
 def analyze_emotion():
     try:
@@ -1603,3 +1601,4 @@ if __name__ == '__main__':
     
     logger.info(f"🚀 Starting Context-Aware Emotional Music Companion on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)
+
